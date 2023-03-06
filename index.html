@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Silkscreen' rel='stylesheet'>
+  <style>body {
+    background-color: #000000;
+    font-family: 'Silkscreen';
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: rgb(0, 255, 0);
+  }
+  
+  .container {
+    margin: 40px auto;
+    text-align: center;
+    color: rgb(3, 249, 3);
+    overflow-x: hidden;
+    font-family: monospace;
+  }
+
+  .container2 {
+    margin: 40px auto;
+    text-align: center;
+    color: rgb(3, 249, 3);
+    overflow-x: hidden;
+    font-family: 'Silkscreen';
+  }
+
+  .head {
+	margin: 40px auto;
+    text-align: center;
+    color: rgb(3, 249, 3);
+    overflow-x: hidden;
+    font-family: monospace;
+	font-size: larger;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+  p {
+    color: rgb(255, 0, 0);
+  }
+  .form-control {
+    margin-bottom: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 30px;
+  }
+
+  input[type="text"]
+{
+    background: transparent;
+    border: none;
+    color: rgb(0, 255, 0);
+    text-align: center;
+}
+  
+  .btn {
+    color: rgb(21, 255, 0);
+    padding: 12px 20px;
+    border: rgb(0, 0, 0);
+    cursor: pointer;
+    width: 30%;
+    opacity: 0.9;
+    font-size: xx-large;
+  }
+  
+  .btn:hover {
+    opacity: 1;
+  }
+  
+  .score {
+    margin-top: 30px;
+    font-size: 18px;
+    color: rgb(3, 249, 3);
+  }
+
+  .highest-score {
+    margin-top: 30px;
+    font-size: 18px;
+    color: rgb(9, 255, 0);
+  }
+
+  .i {
+    margin-top: 30px;
+    font-size: 18px;
+    color: rgb(9, 255, 0);
+  }
+
+  .i {
+  display: none;
+}
+
+</style>
+  <script>
+
+const web3 = new Web3(Web3.givenProvider);
+
+let userAddress;
+
+if (window.ethereum) {
+  window.ethereum.enable().then(function(accounts) {
+    userAddress = accounts[0];
+    console.log(userAddress);
+  });
+} else {
+  console.log("Non-Ethereum browser detected. You should consider trying MetaMask!");
+}
+    // The address of the contract
+    var contractAddress = "0xbA7a1696F459430b9040541260e24332F402e980";
+	var beraFlipContractAddress = "0xCc5AaCC434Aa3f3d24c771Fb5a8E7d23a9Dfc35E"
+    
+    // The ABI of the contract
+    var contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "symbol",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "baseTokenURI",
+				"type": "string"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "approved",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "operator",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "approved",
+				"type": "bool"
+			}
+		],
+		"name": "ApprovalForAll",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "burn",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "grantRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "recoverEth",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "renounceRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "revokeRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "previousAdminRole",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "newAdminRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "RoleAdminChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleRevoked",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "safeTransferFrom",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			}
+		],
+		"name": "safeTransferFrom",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "operator",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "approved",
+				"type": "bool"
+			}
+		],
+		"name": "setApprovalForAll",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Unpaused",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "DEFAULT_ADMIN_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "getApproved",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			}
+		],
+		"name": "getRoleAdmin",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getRoleMember",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			}
+		],
+		"name": "getRoleMemberCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "hasRole",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "operator",
+				"type": "address"
+			}
+		],
+		"name": "isApprovedForAll",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MINTER_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "ownerOf",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "PAUSER_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes4",
+				"name": "interfaceId",
+				"type": "bytes4"
+			}
+		],
+		"name": "supportsInterface",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenByIndex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenOfOwnerByIndex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenURI",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+	//The ABI of the beraFlip contract
+	var beraFlipABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newCost",
+				"type": "uint256"
+			}
+		],
+		"name": "changeCost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newMin",
+				"type": "uint256"
+			}
+		],
+		"name": "changeMinBlocks",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "flipCoin",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "togglePause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_cantoBeraAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_honeyToken",
+				"type": "address"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "player",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "bool",
+				"name": "win",
+				"type": "bool"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "blockNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "randomNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "NewFlip",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "cantoBeraContractAdd",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cost",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "flipCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getStats",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "honeyToken",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "lastFlipBlock",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "minBlocks",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pot",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalLosses",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalWins",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+	var flipContract = new web3.eth.Contract(beraFlipABI, beraFlipContractAddress);
+    // Create the contract object
+    var contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    // Function to handle the button click
+    function mint() {
+      //var gifUrl = "./media/wassKill.gif";
+      //document.getElementById("gif").src = gifUrl;
+      var gasPrice = web3.utils.toWei('50', 'ether');
+      // Call the whack function of the contract
+      contract.methods.mint().send({from: userAddress, value: gasPrice}).then(function(receipt) {});
+    }
+
+  </script>
+</head>
+<body>
+    <pre class="container" >                                                                                                                                                                                                                                                                    
+ .----------------.  .----------------.  .----------------.  .----------------.  .----------------. 
+| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
+| |   ______     | || |  _________   | || |  _______     | || |      __      | || |    _______   | |
+| |  |_   _ \    | || | |_   ___  |  | || | |_   __ \    | || |     /  \     | || |   /  ___  |  | |
+| |    | |_) |   | || |   | |_  \_|  | || |   | |__) |   | || |    / /\ \    | || |  |  (__ \_|  | |
+| |    |  __'.   | || |   |  _|  _   | || |   |  __ /    | || |   / ____ \   | || |   '.___`-.   | |
+| |   _| |__) |  | || |  _| |___/ |  | || |  _| |  \ \_  | || | _/ /    \ \_ | || |  |`\____) |  | |
+| |  |_______/   | || | |_________|  | || | |____| |___| | || ||____|  |____|| || |  |_______.'  | |
+| |              | || |              | || |              | || |              | || |              | |
+| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
+ '----------------'  '----------------'  '----------------'  '----------------'  '----------------' 
+					                                                                        on Canto																													  
+    </pre>
+  <script>
+</script>
+  <pre class="container2" >
+    <button id="Btn"class="btn" onclick="mint()">[CLICK HERE TO MINT]</button>
+    _____________________________________________
+
+CANTO BERAS ARE BERAS ON CANTO!
+NO UTILITY! NO ROYALTIES, EVER!
+FUN BERAS!
+MINT YOUR BERA NOW FOR 50 CANTO!
+
+RAWRR!
+    _____________________________________________
+  </pre>
+  <pre class="container2" id="num-left">
+</pre>
+  <pre class="container2">LATEST MINTED BERA!
+  </pre>
+  <pre class="container2" id="nft-display">
+</pre>
+<pre class="i">Huf khf zwlua dpao fvb pz tf mhcvypal khf. Zv, avkhf pz tf uld mhcvypal khf.
+    hbaovy whnl
+    8 3</pre>
+
+<script>
+async function numLeft() {
+  const id = await getTotalSupply();
+  let num = 3333-id;
+  // Create a text node with the message
+  const textNode = document.createTextNode(`There are ${num} beras left!`);
+  // Append the text node to the element with id "num-left"
+  document.getElementById("num-left").appendChild(textNode);
+}
+
+async function displayNFT() {
+  const id = await getTotalSupply();
+  // Call the tokenURI method to get the URL for the NFT
+  const tokenURI = await contract.methods.tokenURI(id).call();
+
+  // Extract the hash from the tokenURI
+  const hash = tokenURI.split("/").pop();
+
+  // Use the hash to display the NFT on the frontend
+  const img = document.createElement("img");
+  img.src = "https://ipfs.io/ipfs/QmTdov2qsNj6AMszyWMAHRPpRa3PQRZybEqaxrr6ws1Qqx/" + hash + ".png";
+  document.getElementById("nft-display").appendChild(img);
+}
+  async function getTotalSupply() {
+  // call the totalSupply() method on the contract
+  const totalSupply = await contract.methods.totalSupply().call();
+
+  return totalSupply;
+}
+
+function sendBera(address, id) {
+  // call the totalSupply() method on the contract
+  contract.methods.safeTransferFrom(userAddress, address, id).send({from: userAddress}).then(function(receipt) {});
+}
+
+function flip() {
+  // call the flipCoin function
+  flipContract.methods.flipCoin().send({from: userAddress, value: 1000000000000000000})
+  .then(function(receipt) {
+    // Transaction was successful
+    var gif = document.getElementById("flipGif");
+    gif.src = "./media/coin1.png";
+	  // Listen for the NewFlip event
+		flipContract.events.NewFlip({ filter: { randomNumber: '1' } }, function(error, event) {
+  		if (!error) {
+    		console.log('New flip event:', event.returnValues);
+			var gif = document.getElementById("flipGif");
+    		gif.src = "./media/win.gif";
+			setTimeout(resetCoin, 2000);
+  		} else {
+    		console.error(error);
+  		}
+		});
+  })
+  .catch(function(error) {
+    // Transaction was rejected
+    var gif = document.getElementById("flipGif");
+    gif.src = "./media/coin1.png";
+    console.log("Transaction rejected: " + error);
+  });
+}
+
+function resetCoin(){
+	var gif = document.getElementById("flipGif");
+    gif.src = "./media/coin1.png";
+}
+
+async function recoverEth() {
+  // call the totalSupply() method on the contract
+  await contract.methods.recoverEth().send({from: userAddress}).then(function(receipt) {});
+}
+
+  // Call the function to display the NFT
+  displayNFT();
+  numLeft();
+
+
+</script>
+<br>
+<div>SEND A BERA!</div>
+<br>
+<div>
+    <label for="address">Address TO SEND TO:</label>
+    <input type="text" id="address">
+  </div>
+  
+  <div>
+    <label for="tokenID">Token ID TO SEND:</label>
+    <input type="text" id="tokenID">
+  </div>
+  
+  <button class="btn" id="sendBeraButton">Send Bera</button>
+  <script>  const sendBeraButton = document.getElementById("sendBeraButton");
+    if (sendBeraButton) {
+      sendBeraButton.addEventListener("click", function() {
+        const address = document.getElementById("address").value;
+        const tokenID = document.getElementById("tokenID").value;
+        sendBera(address, tokenID);
+      });
+    }</script>
+<br>
+<br>
+<br>
+<br>
+<div><head>Flip the mystical bera coin! Try your luck!</div></head>
+<div>***Only open to beras!***</div>
+<div>1 Canto per flip! Earn HONEY just for playing!</div>
+<div></div>
+<br>
+<img id="flipGif" src="./media/coin1.png" style="background-color: black">
+<br>
+<button class="btn" id="flipCoinButton">Flip a coin!</button>
+<script>
+	const flipCoinButton = document.getElementById("flipCoinButton");
+	flipCoinButton.addEventListener("click", function() {
+		var gif = document.getElementById("flipGif");
+		gif.src = "./media/flip.gif";
+        flip();
+      });</script>
+</body>
+</html>
